@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - OTP Research Tool{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-widget">
+            <div class="stat-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_scans }}</div>
+            <div class="stat-label">Total Scans</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-widget">
+            <div class="stat-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <div class="stat-value">{{ stats.otps_detected }}</div>
+            <div class="stat-label">OTPs Detected</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-widget">
+            <div class="stat-icon">
+                <i class="fas fa-network-wired"></i>
+            </div>
+            <div class="stat-value">{{ stats.active_sessions }}</div>
+            <div class="stat-label">Active Sessions</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-widget">
+            <div class="stat-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="stat-value">{{ stats.tools_enabled }}</div>
+            <div class="stat-label">Tools Enabled</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-history"></i> Recent Activity
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Target</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td><small>{{ activity.timestamp }}</small></td>
+                                <td>{{ activity.action }}</td>
+                                <td><code>{{ activity.target }}</code></td>
+                                <td>{{ activity.result }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-lightbulb"></i> Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('url_intercept') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-globe"></i> URL Intercept
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('pcap_analyzer') }}" class="btn btn-success w-100">
+                            <i class="fas fa-file-archive"></i> PCAP Analysis
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('sms_gateway') }}" class="btn btn-info w-100 text-white">
+                            <i class="fas fa-sms"></i> SMS Gateway
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('email_otp') }}" class="btn btn-warning w-100">
+                            <i class="fas fa-envelope"></i> Email OTP
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('tool_manager') }}" class="btn btn-secondary w-100">
+                            <i class="fas fa-tools"></i> Tool Manager
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('settings') }}" class="btn btn-dark w-100">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-shield-alt"></i> Tool Status
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for tool, status in tool_statuses.items() %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ tool|capitalize }}
+                        <span>
+                            {% if status == 'active' %}
+                            <span class="status-indicator status-active"></span> Active
+                            {% elif status == 'error' %}
+                            <span class="status-indicator status-error"></span> Error
+                            {% else %}
+                            <span class="status-indicator status-inactive"></span> Inactive
+                            {% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-info-circle"></i> System Information
+            </div>
+            <div class="card-body">
+                <p><strong>Version:</strong> 1.0.0 (Research Build)</p>
+                <p><strong>Environment:</strong> Development</p>
+                <p><strong>Last Update:</strong> May 2, 2025</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> This tool is for research and educational purposes only.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

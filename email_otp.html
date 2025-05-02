@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Email OTP Simulator - OTP Research Tool{% endblock %}
+
+{% block page_title %}Email OTP Simulator{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> This tool simulates intercepting OTPs sent via email. Enter an email address to simulate receiving and intercepting an email-based OTP.
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-container mb-4">
+            <form method="POST" class="tool-form" data-demo="true" data-output="results-container">
+                <div class="mb-3">
+                    <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email Address:</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="user@example.com" required>
+                    <div class="form-text">Enter the target email address for OTP simulation</div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-link tool-settings-toggle" data-target="advanced-settings">
+                        <i class="fas fa-chevron-down"></i> Show Advanced Settings
+                    </button>
+
+                    <div id="advanced-settings" style="display: none;">
+                        <div class="card card-body bg-light mb-3">
+                            <div class="mb-3">
+                                <label for="tool" class="form-label"><i class="fas fa-tools"></i> Email Interception Method:</label>
+                                <select class="form-select" id="tool" name="tool">
+                                    <option value="simulated" selected>Simulated Gateway</option>
+                                    <option value="smtp">SMTP/IMAP Proxy</option>
+                                    <option value="mitm">MiTM Proxy</option>
+                                    <option value="api">Email Provider API</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="delay" class="form-label"><i class="fas fa-clock"></i> Simulated Delay (seconds):</label>
+                                <input type="number" class="form-control" id="delay" name="delay" value="2" min="0" max="10">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="format" class="form-label"><i class="fas fa-file-code"></i> Email Format:</label>
+                                <select class="form-select" id="format" name="format">
+                                    <option value="html" selected>HTML</option>
+                                    <option value="text">Plain Text</option>
+                                    <option value="both">HTML & Text</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="save_logs" name="save_logs" value="true" checked>
+                                    <label class="form-check-label" for="save_logs">Save logs</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-warning text-dark">
+                        <i class="fas fa-envelope"></i> Simulate Email OTP Interception
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="results-container">
+    {% if result %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-check-circle"></i> Email OTP Captured
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Email OTP Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Email Address:</th>
+                            <td><code>{{ result.email }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>OTP Value:</th>
+                            <td>
+                                <span class="badge bg-success">{{ result.otp }}</span>
+                                <button class="btn btn-sm btn-outline-primary copy-btn ms-2" data-copy-target="otp-value">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <div id="otp-value" style="display: none;">{{ result.otp }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Confidence:</th>
+                            <td>{{ (result.confidence * 100)|round(2) }}%</td>
+                        </tr>
+                        <tr>
+                            <th>Detection Method:</th>
+                            <td>{{ result.method|replace('_', ' ')|capitalize }}</td>
+                        </tr>
+                        <tr>
+                            <th>Timestamp:</th>
+                            <td>{{ result.timestamp }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-envelope"></i> Simulated Email
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>From:</strong> security@example.com<br>
+                                <strong>To:</strong> {{ result.email }}<br>
+                                <strong>Subject:</strong> Your Verification Code<br>
+                                <strong>Date:</strong> {{ result.timestamp }}
+                            </div>
+                            <hr>
+                            <div class="email-content p-3 bg-light rounded">
+                                <p>Dear User,</p>
+                                <p>Your verification code is: <strong>{{ result.otp }}</strong></p>
+                                <p>This code will expire in 10 minutes. If you did not request this code, please ignore this email.</p>
+                                <p>Best regards,<br>Security Team</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-download"></i> Download Report
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-file-export"></i> Export Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-terminal"></i> Tool Output
+        </div>
+        <div class="card-body p-0">
+            <div class="terminal-output">{{ tool_output }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <i class="fas fa-book"></i> How It Works
+    </div>
+    <div class="card-body">
+        <p><strong>This tool demonstrates how OTPs sent via email can be intercepted through various methods:</strong></p>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <h5>SMTP/IMAP Proxying</h5>
+                        <p class="card-text">Intercepts email traffic by acting as a proxy between the user and email servers.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <h5>Network Interception</h5>
+                        <p class="card-text">Uses MiTM attacks to capture unencrypted email communications on unsecured networks.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <h5>Email Parsing</h5>
+                        <p class="card-text">Extracts OTPs from emails using pattern recognition and content analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <strong>Research Purpose Only:</strong> This tool is for educational and research purposes to understand email OTP security vulnerabilities and implement better protection mechanisms.
+        </div>
+
+        <div class="mt-4">
+            <h5>Email OTP Security Recommendations</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul>
+                        <li><strong>Use Encrypted Connections:</strong> Always use TLS/SSL for email transmissions</li>
+                        <li><strong>Implement SPF, DKIM, and DMARC:</strong> Protect against email spoofing</li>
+                        <li><strong>Unique OTP Formats:</strong> Avoid using common patterns that are easy to detect</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul>
+                        <li><strong>Multi-Factor Authentication:</strong> Use additional verification methods beyond email</li>
+                        <li><strong>Limited Validity Period:</strong> Set short expiration times for OTPs</li>
+                        <li><strong>Email Encryption:</strong> Consider end-to-end encrypted email for sensitive information</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy button functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-copy-target');
+                const text = document.getElementById(targetId).textContent;
+
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        const originalHtml = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i>';
+
+                        setTimeout(() => {
+                            this.innerHTML = originalHtml;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Copy failed:', err);
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

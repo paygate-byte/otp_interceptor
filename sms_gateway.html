@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}SMS Gateway Simulator - OTP Research Tool{% endblock %}
+
+{% block page_title %}SMS Gateway Simulator{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> This tool simulates intercepting OTPs sent via SMS. Enter a phone number to simulate receiving an OTP message.
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-container mb-4">
+            <form method="POST" class="tool-form" data-demo="true" data-output="results-container">
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label"><i class="fas fa-mobile-alt"></i> Phone Number:</label>
+                    <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="+1234567890" required>
+                    <div class="form-text">Enter a phone number in international format (e.g., +1234567890)</div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-link tool-settings-toggle" data-target="advanced-settings">
+                        <i class="fas fa-chevron-down"></i> Show Advanced Settings
+                    </button>
+
+                    <div id="advanced-settings" style="display: none;">
+                        <div class="card card-body bg-light mb-3">
+                            <div class="mb-3">
+                                <label for="tool" class="form-label"><i class="fas fa-tools"></i> SMS Interception Method:</label>
+                                <select class="form-select" id="tool" name="tool">
+                                    <option value="simulated" selected>Simulated Gateway</option>
+                                    <option value="gsm">GSM Modem</option>
+                                    <option value="ss7">SS7 Protocol</option>
+                                    <option value="android">Android Debug Bridge</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="delay" class="form-label"><i class="fas fa-clock"></i> Simulated Delay (seconds):</label>
+                                <input type="number" class="form-control" id="delay" name="delay" value="2" min="0" max="10">
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="notify" name="notify" value="true" checked>
+                                    <label class="form-check-label" for="notify">Simulate notification</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="save_logs" name="save_logs" value="true" checked>
+                                    <label class="form-check-label" for="save_logs">Save logs</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-info text-white">
+                        <i class="fas fa-sms"></i> Simulate SMS OTP Interception
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="results-container">
+    {% if result %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-check-circle"></i> SMS OTP Captured
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>SMS OTP Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Phone Number:</th>
+                            <td><code>{{ result.phone_number }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>OTP Value:</th>
+                            <td>
+                                <span class="badge bg-success">{{ result.otp }}</span>
+                                <button class="btn btn-sm btn-outline-primary copy-btn ms-2" data-copy-target="otp-value">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <div id="otp-value" style="display: none;">{{ result.otp }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Confidence:</th>
+                            <td>{{ (result.confidence * 100)|round(2) }}%</td>
+                        </tr>
+                        <tr>
+                            <th>Detection Method:</th>
+                            <td>{{ result.method|replace('_', ' ')|capitalize }}</td>
+                        </tr>
+                        <tr>
+                            <th>Timestamp:</th>
+                            <td>{{ result.timestamp }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-mobile-alt"></i> Simulated SMS Message
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-2">
+                                    <i class="fas fa-user-shield fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong>Security Service</strong><br>
+                                    <small class="text-muted">{{ result.timestamp }}</small>
+                                </div>
+                            </div>
+                            <div class="sms-bubble p-3 bg-light rounded">
+                                Your verification code is <strong>{{ result.otp }}</strong>. Do not share this code with anyone.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-download"></i> Download Report
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-file-export"></i> Export Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-terminal"></i> Tool Output
+        </div>
+        <div class="card-body p-0">
+            <div class="terminal-output">{{ tool_output }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <i class="fas fa-book"></i> How It Works
+    </div>
+    <div class="card-body">
+        <p><strong>This tool demonstrates how OTPs sent via SMS can be intercepted through various methods:</strong></p>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </div>
+                        <h5>GSM Network Simulation</h5>
+                        <p class="card-text">Uses software-defined radio and GSM modems to intercept SMS messages containing OTPs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <h5>SS7 Protocol Vulnerabilities</h5>
+                        <p class="card-text">Demonstrates how telecom signaling protocols can be exploited to intercept SMS messages.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h5>Device-side Interception</h5>
+                        <p class="card-text">Simulates compromised devices or apps that can read incoming SMS messages to capture OTPs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <strong>Research Purpose Only:</strong> This tool is for educational and research purposes to understand SMS OTP security vulnerabilities and implement better protection mechanisms.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy button functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-copy-target');
+                const text = document.getElementById(targetId).textContent;
+
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        const originalHtml = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i>';
+
+                        setTimeout(() => {
+                            this.innerHTML = originalHtml;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Copy failed:', err);
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

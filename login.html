@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - OTP Research Tool{% endblock %}
+
+{% block page_title %}Authentication Required{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-lock"></i> Secure Login
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> This is a restricted research tool. Authentication is required.
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <input type="text" class="form-control" id="username" name="username" required autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password:</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Demo Credentials:</strong><br>
+                        Username: <code>research</code><br>
+                        Password: <code>demo123</code>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> This tool is for educational research purposes only. Unauthorized access or misuse of this tool for illegal activities is strictly prohibited.
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="text-center">
+                    <small>
+                        <a href="{{ url_for('disclaimer') }}" class="text-decoration-none">Legal Disclaimer</a> |
+                        <a href="{{ url_for('about') }}" class="text-decoration-none">About</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Tool Manager - OTP Research Tool{% endblock %}
+
+{% block page_title %}Tool Manager{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> Manage the security tools integrated with this application. Configure paths, check statuses, and run individual tools.
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-tools"></i> Integrated Security Tools
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for tool in tools %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 tool-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ tool.name }}</h5>
+                                <span>
+                                    {% if tool.status == 'active' %}
+                                    <span class="status-indicator status-active"></span> Active
+                                    {% elif tool.status == 'error' %}
+                                    <span class="status-indicator status-error"></span> Error
+                                    {% else %}
+                                    <span class="status-indicator status-inactive"></span> Inactive
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <i class="{{ tool.icon }} fa-3x"></i>
+                                </div>
+                                <p>{{ tool.description }}</p>
+                                <div class="small text-muted mb-3">
+                                    <strong>Version:</strong> {{ tool.version }}<br>
+                                    <strong>Path:</strong> <code>{{ tool.path }}</code>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary tool-execute" data-tool="{{ tool.id }}" data-output="tool-{{ tool.id }}-output">
+                                        <i class="fas fa-play"></i> Run Tool
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#config-{{ tool.id }}" aria-expanded="false">
+                                        <i class="fas fa-cog"></i> Configure
+                                    </button>
+                                </div>
+
+                                <div class="collapse mt-3" id="config-{{ tool.id }}">
+                                    <div class="card card-body bg-light">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tool Path:</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-sm" value="{{ tool.path }}">
+                                                <button class="btn btn-outline-secondary btn-sm" type="button">
+                                                    <i class="fas fa-save"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enable-{{ tool.id }}" {% if tool.status == 'active' %}checked{% endif %}>
+                                            <label class="form-check-label" for="enable-{{ tool.id }}">Enable Tool</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="collapse mt-3" id="tool-{{ tool.id }}-output"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-cloud-download-alt"></i> Tool Updates
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Current</th>
+                            <th>Available</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Wireshark</td>
+                            <td>3.6.2</td>
+                            <td>3.6.5</td>
+                            <td><button class="btn btn-sm btn-outline-primary">Update</button></td>
+                        </tr>
+                        <tr>
+                            <td>OWASP ZAP</td>
+                            <td>2.12.0</td>
+                            <td>2.12.0</td>
+                            <td><span class="badge bg-success">Latest</span></td>
+                        </tr>
+                        <tr>
+                            <td>Burp Suite</td>
+                            <td>2022.3.4</td>
+                            <td>2022.8.2</td>
+                            <td><button class="btn btn-sm btn-outline-primary">Update</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary">
+                        <i class="fas fa-sync"></i> Check for Updates
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-plug"></i> Install New Tools
+            </div>
+            <div class="card-body">
+                <p>Install additional security tools to enhance OTP interception capabilities:</p>
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">SSLstrip</h5>
+                            <small>MITM Tool</small>
+                        </div>
+                        <p class="mb-1">Downgrade HTTPS connections to HTTP for easier traffic analysis</p>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">mitmproxy</h5>
+                            <small>Proxy Tool</small>
+                        </div>
+                        <p class="mb-1">Interactive HTTPS proxy for intercepting and modifying traffic</p>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Aircrack-ng</h5>
+                            <small>Wireless Tool</small>
+                        </div>
+                        <p class="mb-1">Wireless network security assessment tools</p>
+                    </a>
+                </div>
+                <div class="d-grid mt-3">
+                    <button class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i> Browse Tool Repository
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <i class="fas fa-cogs"></i> Tool Integration API
+    </div>
+    <div class="card-body">
+        <p>Use our API to integrate tools programmatically:</p>
+        <div class="terminal-output">
+<pre>
+# Python example to execute a tool via API
+import requests
+import json
+
+api_url = "http://localhost:5000/api/execute-tool"
+headers = {'Content-Type': 'application/json'}
+
+# Example payload for Wireshark analysis
+payload = {
+    "tool": "wireshark",
+    "params": {
+        "file": "capture.pcap",
+        "filter": "http contains otp"
+    }
+}
+
+response = requests.post(api_url, headers=headers, data=json.dumps(payload))
+results = response.json()
+
+print(f"Analysis complete: {len(results['potential_otps'])} OTPs found")
+</pre>
+        </div>
+        <div class="d-grid mt-3">
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-book"></i> View Complete API Documentation
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tool execution buttons
+        const toolExecuteButtons = document.querySelectorAll('.tool-execute');
+        toolExecuteButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const toolId = this.getAttribute('data-tool');
+                const outputId = this.getAttribute('data-output');
+                const outputElement = document.getElementById(outputId);
+
+                if (!outputElement) return;
+
+                // Show the output div
+                outputElement.classList.add('show');
+
+                const stopLoading = window.showLoading(this, 'Running...');
+
+                // Simulate API call
+                setTimeout(function() {
+                    outputElement.innerHTML = '<div class="terminal-output" id="' + toolId + '-terminal"></div>';
+
+                    // Use the global simulateTyping function from script.js
+                    window.simulateTyping(toolId + '-terminal',
+                        `[*] Executing ${toolId}...\n` +
+                        `[*] Loading configuration...\n` +
+                        `[+] Tool started successfully\n` +
+                        `[*] Scanning for OTP patterns...\n` +
+                        `[+] Execution completed\n`
+                    );
+
+                    stopLoading();
+                }, 1500);
+            });
+        });
+
+        // Toggle switches for enabling/disabling tools
+        const enableSwitches = document.querySelectorAll('.form-check-input[id^="enable-"]');
+        enableSwitches.forEach(function(switchEl) {
+            switchEl.addEventListener('change', function() {
+                const toolId = this.id.replace('enable-', '');
+                const statusIndicator = this.closest('.tool-card').querySelector('.status-indicator');
+                const statusText = statusIndicator.nextSibling;
+
+                if (this.checked) {
+                    statusIndicator.classList.remove('status-inactive');
+                    statusIndicator.classList.add('status-active');
+                    statusText.textContent = ' Active';
+                } else {
+                    statusIndicator.classList.remove('status-active');
+                    statusIndicator.classList.add('status-inactive');
+                    statusText.textContent = ' Inactive';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

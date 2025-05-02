@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}PCAP Analyzer - OTP Research Tool{% endblock %}
+
+{% block page_title %}PCAP Analyzer{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> Upload a packet capture (PCAP) file to analyze it for potential OTP transmissions. This tool will scan the file for OTP patterns in HTTP, SMS, or email transmissions.
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-container mb-4">
+            <form method="POST" enctype="multipart/form-data" class="tool-form" data-demo="true" data-output="results-container">
+                <div class="mb-3">
+                    <label for="file" class="form-label"><i class="fas fa-file-upload"></i> PCAP File:</label>
+                    <input type="file" class="form-control" id="file" name="file" accept=".pcap,.cap,.pcapng" required>
+                    <div class="form-text">Upload a Wireshark/tcpdump capture file (.pcap, .cap, or .pcapng)</div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-link tool-settings-toggle" data-target="advanced-settings">
+                        <i class="fas fa-chevron-down"></i> Show Advanced Settings
+                    </button>
+
+                    <div id="advanced-settings" style="display: none;">
+                        <div class="card card-body bg-light mb-3">
+                            <div class="mb-3">
+                                <label for="filter" class="form-label"><i class="fas fa-filter"></i> Display Filter:</label>
+                                <input type="text" class="form-control" id="filter" name="filter" placeholder="http or https" value="http or https">
+                                <div class="form-text">Enter a Wireshark/tshark display filter</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tool" class="form-label"><i class="fas fa-tools"></i> Analysis Tool:</label>
+                                <select class="form-select" id="tool" name="tool">
+                                    <option value="wireshark" selected>Wireshark/tshark</option>
+                                    <option value="tcpdump">tcpdump</option>
+                                    <option value="custom">Custom analyzer</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="deep_scan" name="deep_scan" value="true">
+                                    <label class="form-check-label" for="deep_scan">Enable deep scanning (may take longer)</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="follow_tcp" name="follow_tcp" value="true" checked>
+                                    <label class="form-check-label" for="follow_tcp">Automatically follow TCP streams</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="extract_files" name="extract_files" value="true">
+                                    <label class="form-check-label" for="extract_files">Extract files from packets</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-search"></i> Analyze PCAP File
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="results-container">
+    {% if results %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-check-circle"></i> Analysis Results
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Analysis Summary</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Packets Analyzed:</th>
+                            <td>{{ results.packets_analyzed }}</td>
+                        </tr>
+                        <tr>
+                            <th>OTPs Found:</th>
+                            <td>{{ results.potential_otps|length }}</td>
+                        </tr>
+                        <tr>
+                            <th>Analysis Time:</th>
+                            <td>{{ results.analysis_time|round(2) }} seconds</td>
+                        </tr>
+                        <tr>
+                            <th>Filter Applied:</th>
+                            <td><code>{{ results.filter_applied }}</code></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Actions</h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-download"></i> Download Analysis Report
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-file-export"></i> Export Results
+                        </button>
+                        <button class="btn btn-outline-info">
+                            <i class="fas fa-search-plus"></i> Launch Wireshark
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <h5>Detected OTPs</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>OTP Value</th>
+                            <th>Source</th>
+                            <th>Method</th>
+                            <th>Confidence</th>
+                            <th>Timestamp</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for otp in results.potential_otps %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-success">{{ otp.otp }}</span>
+                            </td>
+                            <td>{{ otp.source|capitalize }}</td>
+                            <td>{{ otp.method|replace('_', ' ')|capitalize }}</td>
+                            <td>{{ (otp.confidence * 100)|round(2) }}%</td>
+                            <td>{{ otp.timestamp }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary copy-btn" data-copy-target="otp-value-{{ loop.index }}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <div id="otp-value-{{ loop.index }}" style="display: none;">{{ otp.otp }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-terminal"></i> Tool Output
+        </div>
+        <div class="card-body p-0">
+            <div class="terminal-output">{{ tool_output }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <i class="fas fa-book"></i> How It Works
+    </div>
+    <div class="card-body">
+        <p><strong>This tool demonstrates how OTPs can be extracted from packet captures:</strong></p>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-ethernet"></i>
+                        </div>
+                        <h5>Packet Inspection</h5>
+                        <p class="card-text">Analyzes packet payloads to find OTP patterns in HTTP requests, responses, and other protocols.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-stream"></i>
+                        </div>
+                        <h5>TCP Stream Analysis</h5>
+                        <p class="card-text">Reconstructs TCP streams to analyze complete sessions for OTP transmissions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body text-center">
+                        <div class="tool-icon">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <h5>Protocol Filtering</h5>
+                        <p class="card-text">Uses protocol-specific filters to focus analysis on traffic likely to contain OTPs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <strong>Research Purpose Only:</strong> This tool is for educational and research purposes to understand how OTPs can be leaked in network traffic and implement better protection mechanisms.
+        </div>
+
+        <div class="mt-4">
+            <h5>Common PCAP Analysis Filters</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Filter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>http or https</code></td>
+                        <td>Shows HTTP and HTTPS traffic</td>
+                    </tr>
+                    <tr>
+                        <td><code>http.request.method == "POST"</code></td>
+                        <td>Shows only HTTP POST requests</td>
+                    </tr>
+                    <tr>
+                        <td><code>http contains "otp"</code></td>
+                        <td>Shows HTTP traffic containing "otp"</td>
+                    </tr>
+                    <tr>
+                        <td><code>tcp.port == 25 or tcp.port == 587</code></td>
+                        <td>Shows SMTP (email) traffic</td>
+                    </tr>
+                    <tr>
+                        <td><code>gsm_sms</code></td>
+                        <td>Shows SMS messages (if available in capture)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy button functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-copy-target');
+                const text = document.getElementById(targetId).textContent;
+
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        const originalHtml = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i>';
+
+                        setTimeout(() => {
+                            this.innerHTML = originalHtml;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Copy failed:', err);
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}
